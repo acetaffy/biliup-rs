@@ -1,0 +1,98 @@
+name: Release111
+on:
+  push:
+    branches:
+      - master
+
+env:
+  BIN_NAME: biliup
+  PROJECT_NAME: biliupR
+
+jobs:
+  dist:
+    name: Dist
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        build: [x86_64-linux, x86_64-linux-musl, aarch64-linux, arm-linux]
+        include:
+        - build: x86_64-linux
+          os: ubuntu-20.04
+          rust: stable
+          target: x86_64-unknown-linux-gnu
+          cross: false
+        - build: x86_64-linux-musl
+          os: ubuntu-20.04
+          rust: stable
+          target: x86_64-unknown-linux-musl
+          cross: true
+        - build: aarch64-linux
+          os: ubuntu-20.04
+          rust: stable
+          target: aarch64-unknown-linux-gnu
+          cross: true
+        - build: arm-linux
+          os: ubuntu-20.04
+          rust: stable
+          target: arm-unknown-linux-gnueabi
+          cross: true
+
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@v2
+        with:
+          submodules: true
+
+      - name: Install ${{ matrix.rust }} toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: ${{ matrix.rust }}
+          target: ${{ matrix.target }}
+          override: true
+
+      - name: Run cargo test
+        uses: actions-rs/cargo@v1
+        with:
+          use-cross: ${{ matrix.cross }}
+          command: test
+          args: --release --locked --target ${{ matrix.target }} -p biliup
+
+      - name: Build release binary
+        uses: actions-rs/cargo@v1
+        with:
+          use-cross: ${{ matrix.cross }}
+          command: build
+          args: --release --locked --target ${{ matrix.target }} -p biliup
+
+      - name: Strip release binary
+        run: |
+          strip "target/${{ matrix.target }}/release/$BIN_NAME"
+
+      - name: Build archive
+        shell: bash
+        run: |
+          mkdir dist
+          cp "target/${{ matrix.target }}/release/$BIN_NAME" "dist/"
+
+      - uses: actions/upload-artifact@v2.2.4
+        with:
+          name: bins-${{ matrix.build }}
+          path: dist
+
+  upload:
+    name: Upload
+    needs: [dist]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@v2
+
+      - name: Download artifacts
+        uses: actions/download-artifact@v2
+        with:
+          name: bins-${{ needs.dist.outputs.build }}
+
+      - name: List artifacts
+        run: ls -al bins-*
