@@ -121,6 +121,7 @@ pub async fn upload_by_config(config: PathBuf, user_cookie: PathBuf) -> Result<(
                 .as_ref()
                 .and_then(|l| UploadLine::from_str(l, true).ok()),
             config.limit,
+            config.extra-fields, // 真nb
         )
         .await?;
         bilibili.submit(&studio).await?;
