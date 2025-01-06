@@ -24,7 +24,6 @@ use std::pin::Pin;
 use std::task::Poll;
 use std::time::Instant;
 use tracing::{info, warn};
-use std::collections::HashMap;
 
 pub async fn login(user_cookie: PathBuf) -> Result<()> {
     let client = Credential::new();
@@ -124,8 +123,8 @@ pub async fn upload_by_config(config: PathBuf, user_cookie: PathBuf) -> Result<(
         )
         .await?;
         
-        if let Some(extra_fields) = config.extra_fields {
-            studio.extra_fields = Some(extra_fields);
+        if let Some(ref extra_fields) = config.extra_fields {
+            studio.extra_fields = Some(extra_fields.clone());
         }
         
         bilibili.submit(&studio).await?;
