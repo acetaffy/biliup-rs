@@ -24,6 +24,7 @@ use std::pin::Pin;
 use std::task::Poll;
 use std::time::Instant;
 use tracing::{info, warn};
+use std::collections::HashMap;
 
 pub async fn login(user_cookie: PathBuf) -> Result<()> {
     let client = Credential::new();
@@ -99,7 +100,6 @@ pub async fn upload_by_command(
 }
 
 pub async fn upload_by_config(config: PathBuf, user_cookie: PathBuf) -> Result<()> {
-    // println!("number of concurrent futures: {limit}");
     let bilibili = login_by_cookies(user_cookie).await?;
     let config = load_config(&config)?;
     for (filename_patterns, mut studio) in config.streamers {
@@ -121,9 +121,13 @@ pub async fn upload_by_config(config: PathBuf, user_cookie: PathBuf) -> Result<(
                 .as_ref()
                 .and_then(|l| UploadLine::from_str(l, true).ok()),
             config.limit,
-            config.extra-fields, // 真nb
         )
         .await?;
+        
+        if let Some(extra_fields) = config.extra_fields {
+            studio.extra_fields = Some(extra_fields);
+        }
+        
         bilibili.submit(&studio).await?;
     }
     Ok(())
