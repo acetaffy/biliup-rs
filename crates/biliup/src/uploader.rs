@@ -42,6 +42,7 @@ pub struct Config {
     #[serde(default = "default_limit")]
     pub limit: usize,
     pub streamers: HashMap<String, Studio>,
+    #[serde(default)]
     pub extra_fields: Option<HashMap<String, serde_json::Value>>,
 }
 
