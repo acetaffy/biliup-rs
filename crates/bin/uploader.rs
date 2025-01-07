@@ -101,6 +101,8 @@ pub async fn upload_by_command(
 pub async fn upload_by_config(config: PathBuf, user_cookie: PathBuf) -> Result<()> {
     let bilibili = login_by_cookies(user_cookie).await?;
     let config = load_config(&config)?;
+    let submit = SubmitOption::from_str(&config.submit, true).unwrap_or(SubmitOption::Client);
+    
     for (filename_patterns, mut studio) in config.streamers {
         let mut paths = Vec::new();
         for entry in glob::glob(&filename_patterns)?.filter_map(Result::ok) {
@@ -123,11 +125,10 @@ pub async fn upload_by_config(config: PathBuf, user_cookie: PathBuf) -> Result<(
         )
         .await?;
         
-        if let Some(ref extra_fields) = config.extra_fields {
-            studio.extra_fields = Some(extra_fields.clone());
+        match submit {
+            SubmitOption::App => bilibili.submit_by_app(&studio).await?,
+            _ => bilibili.submit(&studio).await?,
         }
-        
-        bilibili.submit(&studio).await?;
     }
     Ok(())
 }
