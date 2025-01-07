@@ -91,8 +91,14 @@ pub async fn upload_by_command(
     // }
     // 说不定会适配 web 呢...?
     match submit {
-        SubmitOption::App => bili.submit_by_app(&studio).await?,
-        _ => bili.submit(&studio).await?,
+        SubmitOption::App => {
+            let response = bili.submit_by_app(&studio).await?;
+            // 处理response
+        }
+        _ => {
+            let response = bili.submit(&studio).await?;
+            // 处理response
+        }
     };
 
     Ok(())
@@ -126,8 +132,14 @@ pub async fn upload_by_config(config: PathBuf, user_cookie: PathBuf) -> Result<(
         .await?;
         
         match submit {
-            SubmitOption::App => bilibili.submit_by_app(&studio).await?,
-            _ => bilibili.submit(&studio).await?,
+            SubmitOption::App => {
+                let response = bilibili.submit_by_app(&studio).await?;
+                // 处理response
+            }
+            _ => {
+                let response = bilibili.submit(&studio).await?;
+                // 处理response
+            }
         }
     }
     Ok(())
