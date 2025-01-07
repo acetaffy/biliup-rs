@@ -41,13 +41,17 @@ pub struct Config {
     pub line: Option<String>,
     #[serde(default = "default_limit")]
     pub limit: usize,
+    #[serde(default = "default_submit")]
+    pub submit: String,
     pub streamers: HashMap<String, Studio>,
-    #[serde(default)]
-    pub extra_fields: Option<HashMap<String, serde_json::Value>>,
 }
 
 fn default_limit() -> usize {
     3
+}
+
+fn default_submit() -> String {
+    "client".to_string()
 }
 
 pub fn load_config(config: &Path) -> error::Result<Config> {
